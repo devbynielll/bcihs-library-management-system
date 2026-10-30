@@ -1,0 +1,53 @@
+/* Credit balance is independent of notification permission and delivery mode. */
+.sms-logs-page .sms-credits {
+  margin: 28px 0;
+  padding: 0;
+  border: 1px solid #e6dad7;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 22px rgba(70, 25, 30, .04);
+}
+.sms-credits > summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 28px;
+  cursor: pointer;
+  list-style: none;
+  color: #64131b;
+}
+.sms-credits > summary::-webkit-details-marker { display: none; }
+.sms-credits > summary::after {
+  content: '+';
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1;
+}
+.sms-credits[open] > summary::after { content: '−'; }
+.sms-credits > summary:focus-visible { outline: 3px solid #9b6570; outline-offset: -5px; border-radius: 16px; }
+.sms-credits-title { display: grid; gap: 5px; flex: 1; font-size: 1.05rem; font-weight: 700; }
+.sms-credits-provider { color: #73707a; font-size: .85rem; font-weight: 400; }
+.sms-credits-badge { padding: 6px 10px; border-radius: 20px; background: #f7f0ef; color: #7c4c53; font-size: .75rem; font-weight: 600; white-space: nowrap; }
+.sms-credits-content { padding: 0 28px 24px; }
+.sms-credits-overview { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 0; border-top: 1px solid #eee5e2; }
+.sms-credits-amount { display: grid; gap: 8px; min-width: 0; }
+.sms-credits-amount > span { color: #73707a; font-size: .85rem; }
+.sms-credits-amount > strong { color: #64131b; font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700; line-height: 1.15; overflow-wrap: anywhere; }
+.sms-credits-actions { display: flex; align-items: center; gap: 24px; }
+.sms-credits-actions p { margin: 0; color: #73707a; font-size: .8rem; line-height: 1.6; }
+.sms-credits-actions p span { display: block; color: #353b47; font-size: .85rem; }
+.sms-credits-actions .refresh-btn { margin: 0; min-height: 44px; padding: 11px 18px; font-size: .85rem; white-space: nowrap; }
+.sms-credits .sms-credits-status { margin: 0; color: #555b66; font-size: .85rem; line-height: 1.6; overflow-wrap: anywhere; }
+.sms-credits .sms-credits-note { margin: 10px 0 0; color: #787780; font-size: .8rem; line-height: 1.6; }
+@media (max-width: 760px) {
+  .sms-credits > summary { padding: 20px; gap: 10px; }
+  .sms-credits-content { padding: 0 20px 20px; }
+  .sms-credits-overview { align-items: flex-start; flex-direction: column; gap: 20px; padding: 20px 0; }
+  .sms-credits-actions { width: 100%; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .sms-credits-actions .refresh-btn { width: auto; }
+}
+@media (max-width: 420px) {
+  .sms-credits-badge { display: none; }
+  .sms-credits-actions { align-items: stretch; flex-direction: column; }
+  .sms-credits-actions .refresh-btn { width: 100%; }
+}

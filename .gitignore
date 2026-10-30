@@ -1,0 +1,47 @@
+/includes/semaphore-api-key.php
+/includes/semaphore-api-key.local.php
+/includes/db-local.php
+/includes/pickup-local.php
+/includes/sms-local.php
+/includes/.sms-local-safe-*.php
+.DS_Store
+
+/vendor/
+/includes/report-local.json
+/includes/borrowing-policy.json
+/includes/.borrowing-policy*
+
+# Private deployment inputs, exports and runtime evidence.
+/.env
+/.env.*
+!/.env.example
+/activation.json
+/config.php
+*.sql.gz
+*.sql.zip
+*.zip
+*.bak
+*.log
+*.claim
+# Uploaded library records stay local; keep upload security rules tracked.
+/uploads/announcements/*
+!/uploads/announcements/.htaccess
+/uploads/books/*
+!/uploads/books/.htaccess
+
+# Private runtime/deployment configuration and generated evidence.
+/includes/db-local.php
+/includes/sms-local.php
+/includes/pickup-local.php
+/includes/semaphore-api-key.php
+/includes/borrowing-policy.json
+/includes/report-local.json
+/includes/.sms-live-test-*.php
+/deployment/hostinger/config.php
+/deployment/hostinger/activation.json
+/deployment/hostinger/activation.lock
+/deployment/hostinger/sessions/
+/deployment/hostinger/*.claim
+*.dump
+*.sqlite
+*.sqlite3
