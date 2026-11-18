@@ -142,7 +142,7 @@ try {
     [$code,$profile]=http('profile-data','GET',null,$student['session']);verify($profile['full_name']===$prefix.' Updated' && $profile['year_section']==='Grade 10 — New' && $profile['student_id']!=='FORGED','saved profile matches Users; immutable identifier cannot be overwritten');
     [$code,$profile]=http('profile-data','GET',null,$admin);verify($profile['role']==='admin' && $profile['full_name']===$prefix && $profile['readOnly'],'standalone admin profile reads admins table only');
     [$code]=http('profile-update','POST',['full_name'=>'Wrong account','phone'=>'09123456789'],$admin);verify($code===403,'admin profile cannot edit a colliding patron ID');
-    foreach([['full_name'=>[]],['full_name'=>str_repeat('x',151)],['full_name'=>'Name','phone'=>'bad']] as $invalid){[$code]=http('profile-update','POST',$invalid,$teacher['session']);verify($code===422,'profile validation refuses malformed details');}
+    foreach([['first_name'=>[]],['last_name'=>str_repeat('x',151)],['full_name'=>'Name','phone'=>'bad']] as $invalid){[$code]=http('profile-update','POST',$invalid,$teacher['session']);verify($code===422,'profile validation refuses malformed details');}
     $body="Long text <script>alert(1)</script>\n".str_repeat('Readable Unicode café announcement. ',100);
     $created=announce($staff,['title'=>$prefix.' Notice','body'=>$body,'category'=>'Notice']);$announcements[]=$id=(int)$created['id'];
     [$code,$public]=http('announcements-data');$row=array_values(array_filter($public['announcements'],static fn($r)=>(int)$r['id']===$id))[0];
@@ -183,9 +183,10 @@ try {
     [$code]=$upload(['title'=>$prefix.' Invalid photo','body'=>'Invalid'],$bad,'image/png');verify($code===422,'spoofed image extension and MIME rejected');
     file_put_contents($bad,str_repeat('x',5*1024*1024+1));
     [$code]=$upload(['title'=>$prefix.' Oversized photo','body'=>'Invalid'],$bad,'image/png');verify($code===422,'oversized photo rejected');
-    foreach(['student','teacher','librarian','visitor'] as $role){
+    foreach(['student','teacher','librarian','visitor'] as $roleIndex=>$role){
         $identifier=$prefix.'-'.$role;
-        $payload=['role'=>$role,'csrf_token'=>$staff['token'],'full_name'=>$prefix.' Registered '.$role,'password'=>$password,'confirm_password'=>$password,'phone'=>'09123456789',
+        $safeName=strtr($prefix,'0123456789_','ABCDEFGHIJK').' '.ucfirst($role);
+        $payload=['role'=>$role,'csrf_token'=>$staff['token'],'first_name'=>'Synthetic','middle_name'=>'Registered','last_name'=>$safeName,'full_name'=>'Synthetic Registered '.$safeName,'password'=>$password,'confirm_password'=>$password,'phone'=>'09123456'.sprintf('%03d',$roleIndex),
             'student_id'=>$identifier,'id_number'=>$identifier,'email'=>strtolower($identifier).'@example.invalid','grade_level'=>'Grade 10','section'=>'Test','department'=>'Science'];
         [$code]=http('register-process','POST',$payload,$staff);verify($code===302,'registration redirects for '.$role);
         $q=$pdo->prepare('SELECT id,role,account_status,phone FROM users WHERE full_name=:name');$q->execute(['name'=>$payload['full_name']]);$registered=$q->fetch();
@@ -200,8 +201,8 @@ try {
         $q=$pdo->prepare('SELECT COUNT(*) FROM users WHERE full_name=:name');$q->execute(['name'=>$payload['full_name']]);$before=(int)$q->fetchColumn();
         http('register-process','POST',$payload,$staff);$q->execute(['name'=>$payload['full_name']]);verify((int)$q->fetchColumn()===$before,'duplicate '.$role.' registration creates no extra account');
     }
-    foreach([['full_name'=>[]],['role'=>[]],['password'=>'short'],['phone'=>'bad'],['csrf_token'=>'bad'],['full_name'=>str_repeat('x',151)]] as $invalid){
-        $payload=['role'=>'student','csrf_token'=>$staff['token'],'full_name'=>$prefix.' Invalid','password'=>$password,'confirm_password'=>$password,'phone'=>'09123456789','student_id'=>$prefix.'-INVALID','year_section'=>'Grade 7 — Test'];
+    foreach([['first_name'=>[]],['role'=>[]],['password'=>'short'],['phone'=>'bad'],['csrf_token'=>'bad'],['last_name'=>str_repeat('x',151)]] as $invalid){
+        $payload=['role'=>'student','csrf_token'=>$staff['token'],'first_name'=>'Synthetic','last_name'=>'Invalid','password'=>$password,'confirm_password'=>$password,'phone'=>'09123456789','student_id'=>$prefix.'-INVALID','grade_level'=>'Grade 7','section'=>'Test'];
         http('register-process','POST',array_replace($payload,$invalid),$staff);
         $q=$pdo->prepare('SELECT COUNT(*) FROM users WHERE student_id=:id');$q->execute(['id'=>$prefix.'-INVALID']);verify((int)$q->fetchColumn()===0,'invalid registration creates no user');
     }

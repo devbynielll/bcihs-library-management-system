@@ -43,8 +43,7 @@
     </div>
 
     <div class="field">
-      <label for="full_name">Full Name<span class="req">*</span></label>
-      <input type="text" id="full_name" name="full_name" placeholder="Enter your full name" autocomplete="name" required>
+      <label for="first_name">First Name *</label><input type="text" id="first_name" name="first_name" autocomplete="given-name" maxlength="150" required pattern="[\p{L}\p{M}][\p{L}\p{M} .’'\-]*" title="Use letters, spaces, apostrophes, periods or hyphens"><label for="middle_name">Middle Name (optional)</label><input type="text" id="middle_name" name="middle_name" autocomplete="additional-name" maxlength="150" pattern="[\p{L}\p{M}][\p{L}\p{M} .’'\-]*" title="Use letters, spaces, apostrophes, periods or hyphens"><label for="last_name">Last Name *</label><input type="text" id="last_name" name="last_name" autocomplete="family-name" maxlength="150" required pattern="[\p{L}\p{M}][\p{L}\p{M} .’'\-]*" title="Use letters, spaces, apostrophes, periods or hyphens">
     </div>
 
     <div class="field">

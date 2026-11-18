@@ -41,6 +41,8 @@ try {
     $status = $reservation['status'];
     if (in_array($action, ['ready', 'fulfill'], true)) {
         borrowingUser($pdo, (int) $reservation['user_id']);
+        if ($action === 'ready' || ($action === 'fulfill' && $status === 'waiting')) requireBorrowingSlot($pdo, (int)$reservation['user_id']);
+        if ($action === 'fulfill') requirePhysicalLoanSlot($pdo, (int)$reservation['user_id']);
         if (hasActiveBorrowing($pdo, (int) $reservation['user_id'], (int) $bookId, 0, $id)) {
             throw new DomainException('This borrower has another active request or loan for this title.', 409);
         }

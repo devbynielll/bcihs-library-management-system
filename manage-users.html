@@ -143,8 +143,8 @@
       </select>
     </div>
 
-    <div class="controls"><label for="statusFilter">Approval status</label><select id="statusFilter"><option value="">All statuses</option><option value="pending">Pending</option><option value="accepted">Approved</option><option value="rejected">Rejected</option></select></div>
-    <p>Approval permits access; it does not mean the user is currently online. Approved accounts cannot be rejected through pending-account review. Rejected accounts may be reconsidered for approval.</p>
+    <div class="controls"><label for="statusFilter">Approval status</label><select id="statusFilter"><option value="">Pending and Approved</option><option value="pending">Pending</option><option value="accepted">Approved</option><option value="rejected">Rejected — staff audit</option></select></div>
+    <p>Approval permits access; it does not mean the user is currently online. Approved accounts cannot be rejected through pending-account review. Rejected accounts are hidden from the routine list. Select “Rejected — staff audit” to review or reconsider them. Summary cards and the registration chart include all accounts.</p>
     <dialog id="accountConfirmation" class="panel" hidden data-managed-confirmation="Confirm account action"><p id="accountActionPrompt"></p><button type="button" class="modal-close-btn" id="confirmAccountAction">Confirm account action</button> <button type="button" class="modal-close-btn" id="cancelAccountAction">Cancel</button></dialog>
     <p class="count-badge" id="countBadge"></p>
 
@@ -171,7 +171,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="js/library-ui.js?v=phase8"></script>
-<script src="js/manage-users.js?v=20261027-phase7a"></script>
+<script src="js/manage-users.js?v=rejected-audit-20261118"></script>
 <script src="js/admin-shell.js?v=20261026-visible-tables"></script>
 </body>
 </html>

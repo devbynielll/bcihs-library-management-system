@@ -24,6 +24,7 @@
   });
 
   let allUsers = [];
+  let usersGeneration = 0;
   let csrfToken = '';
   let serverDate = '', currentUserId=null, busy=false, pendingAction=null;
 
@@ -95,6 +96,7 @@
       if (role && roleGroup(u.role) !== role) return false;
       const status=document.getElementById('statusFilter').value;
       if(status && u.account_status!==status)return false;
+      if(!status && u.account_status==='rejected')return false;
       if (!q) return true;
       const haystack = [u.full_name,u.student_id,u.id_number,u.email]
         .filter(Boolean).join(' ').toLowerCase();
@@ -275,19 +277,26 @@
   }
 
   function loadUsers() {
-    return fetch('backend/all-users-data.php', { credentials: 'same-origin' })
+    const generation = ++usersGeneration;
+    const audit = document.getElementById('statusFilter').value === 'rejected';
+    allUsers = [];
+    document.getElementById('usersBody').innerHTML = '';
+    document.getElementById('countBadge').style.display = 'none';
+    return fetch('backend/all-users-data.php' + (audit ? '?view=rejected' : ''), { credentials: 'same-origin', cache:'no-store' })
       .then(res => {
         if (res.status === 401) throw new Error('not_logged_in');
         if (!res.ok) throw new Error('failed');
         return res.json();
       })
       .then(data => {
+        if (generation !== usersGeneration) return;
         allUsers = data.users || [];
         csrfToken = data.csrfToken || '';serverDate=data.serverDate;currentUserId=data.currentUserId;
 
         const group = { student: 0, teacher: 0, librarian: 0, visitor: 0 };
         let approved = 0;
-        allUsers.forEach(u => {
+        const statistics = data.statistics || allUsers;
+        statistics.forEach(u => {
           const g = roleGroup(u.role);
           if (group[g] !== undefined) group[g]++;
           if (u.account_status === 'accepted') approved++;
@@ -298,7 +307,7 @@
         document.getElementById('countVisitor').textContent = group.visitor;
         document.getElementById('countActive').textContent = approved;
 
-        renderChart(allUsers);
+        renderChart(statistics);
 
         document.getElementById('loadingMsg').style.display = 'none';
         document.getElementById('usersTable').style.display = 'table';
@@ -306,6 +315,7 @@
         applyFilters();
       })
       .catch(err => {
+        if (generation !== usersGeneration) return;
         if (err.message === 'not_logged_in') { window.location.href = 'admin-login.html'; return; }
         allUsers=[];document.getElementById('usersBody').innerHTML='';
         document.getElementById('countBadge').style.display='none';
@@ -317,6 +327,6 @@
 
   document.getElementById('searchInput').addEventListener('input', applyFilters);
   document.getElementById('roleFilter').addEventListener('change', applyFilters);
-  document.getElementById('statusFilter').addEventListener('change',applyFilters);
+  document.getElementById('statusFilter').addEventListener('change',loadUsers);
 
 loadUsers();

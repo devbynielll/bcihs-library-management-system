@@ -11,6 +11,7 @@ INSERT INTO sms_notification_settings(id,allow_notifications,version) VALUES(1,0
 CREATE TABLE sms_notification_audit (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     admin_id INT UNSIGNED NOT NULL,
+    actor_role ENUM('admin','librarian') NOT NULL DEFAULT 'admin',
     previous_allowed TINYINT UNSIGNED NOT NULL,
     new_allowed TINYINT UNSIGNED NOT NULL,
     setting_version INT UNSIGNED NOT NULL UNIQUE,

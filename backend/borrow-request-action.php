@@ -37,6 +37,7 @@ try {
     }
     if (in_array($action, ['approve', 'checkout'], true) && $request['user_id']) {
         borrowingUser($pdo, (int) $request['user_id']);
+        if ($action === 'checkout') requirePhysicalLoanSlot($pdo, (int)$request['user_id']);
         if (hasActiveBorrowing($pdo, (int) $request['user_id'], (int) $bookId, $id)) {
             throw new DomainException('This borrower has another active loan or reservation for the same title.', 409);
         }

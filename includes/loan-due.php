@@ -19,8 +19,9 @@ function loanPolicy(): array
     return $policy;
 }
 
-function saveLoanPolicy(array $input, int $adminId): array
+function saveLoanPolicy(array $input, int $adminId, string $actorRole = 'admin'): array
 {
+    if (!in_array($actorRole, ['admin','librarian'], true)) throw new DomainException('Staff access required.', 403);
     $days = loanDays($input['days'] ?? null);
     $reason = $input['reason'] ?? '';
     if (!is_string($reason) || trim($reason) === '' || mb_strlen($reason) > 250 || preg_match('/[\x00-\x1f\x7f]/u', $reason)
@@ -37,9 +38,9 @@ function saveLoanPolicy(array $input, int $adminId): array
     try {
         if (!chmod($lockPath, 0600) || !flock($lock, LOCK_EX)) throw new RuntimeException('Borrowing policy unavailable.');
         $policy = loanPolicy();
-        if ($input['version'] !== $policy['version']) throw new DomainException('Another administrator changed this policy. Reload before saving.', 409);
+        if ($input['version'] !== $policy['version']) throw new DomainException('Another staff member changed this policy. Reload before saving.', 409);
         if ($days === $policy['days']) return $policy;
-        $policy['audit'][] = ['admin_id'=>$adminId, 'previous_days'=>$policy['days'], 'new_days'=>$days,
+        $policy['audit'][] = ['admin_id'=>$adminId, 'actor_role'=>$actorRole, 'previous_days'=>$policy['days'], 'new_days'=>$days,
             'reason'=>trim($reason), 'changed_at'=>(new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('Y-m-d H:i:s')];
         $policy['days'] = $days;
         $policy['version']++;

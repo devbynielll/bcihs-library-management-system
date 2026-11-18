@@ -13,6 +13,7 @@ try {
     $pdo->beginTransaction();
     $book = lockBorrowingBook($pdo, $bookId);
     borrowingUser($pdo, $userId);
+    requireBorrowingSlot($pdo, $userId);
     if (hasActiveBorrowing($pdo, $userId, $bookId)) {
         throw new DomainException('You already have an active request, loan, or reservation for this title.', 409);
     }

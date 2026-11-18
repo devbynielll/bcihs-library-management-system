@@ -26,3 +26,5 @@ Keep the hosted SMS setting OFF unless the school separately authorizes notifica
 Verify the homepage, public books and announcements, administrator and borrower login, authorization on staff APIs, uploads, reports, QR verification, borrowing/return, and Time In. Review SMS Settings and confirm the expected disabled/simulation state. Do not create test records in the live database. For functional tests that write data, use a separate disposable database and approved test accounts.
 
 The Hostinger-specific source adapters and one-time setup helper are under `deployment/hostinger/`. The rotation helper is only for a separately reviewed new-install procedure; it is not a password-reset tool for an active school site. No deployment or database change is performed by this repository or guide. Require explicit release approval before making changes to the live site.
+
+For the latest local revision policy, migration prerequisites and inactive reminder scheduling, see [POST-DEFENSE-SETUP.md](POST-DEFENSE-SETUP.md).

@@ -13,7 +13,7 @@ try {
         'SELECT br.id, br.status, br.requested_at, br.approved_at, br.checked_out_at, br.due_date, br.returned_at,
                 COALESCE(br.checked_out_at, CASE WHEN br.status IN ("approved","returned") THEN br.approved_at END) AS borrowed_at,
                 b.title AS book_title, b.author
-         FROM borrow_requests br JOIN books b ON b.id = br.book_id WHERE br.user_id = :borrow_user
+         FROM borrow_requests br JOIN books b ON b.id = br.book_id WHERE br.user_id = :borrow_user AND br.status<>"rejected"
          UNION ALL
          SELECT r.id, CASE WHEN r.status = "returned" THEN "returned" ELSE "checked_out" END,
                 r.reserved_at, r.ready_at, r.fulfilled_at, r.due_date, r.returned_at, r.fulfilled_at, b.title, b.author

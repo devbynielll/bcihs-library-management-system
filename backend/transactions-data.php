@@ -13,7 +13,7 @@ try {
                 br.due_date, br.returned_at,
                 COALESCE(br.checked_out_at, CASE WHEN br.status IN ("approved","returned") THEN br.approved_at END) AS borrowed_at,
                 COALESCE(br.borrower_name, u.full_name) AS student_name, b.title AS book_title
-         FROM borrow_requests br LEFT JOIN users u ON u.id = br.user_id JOIN books b ON b.id = br.book_id
+         FROM borrow_requests br LEFT JOIN users u ON u.id = br.user_id JOIN books b ON b.id = br.book_id WHERE br.status<>"rejected"
          UNION ALL
          SELECT r.id, "reservation", r.status, r.reserved_at, r.ready_at, r.fulfilled_at,
                 r.due_date, r.returned_at, r.fulfilled_at, u.full_name, b.title

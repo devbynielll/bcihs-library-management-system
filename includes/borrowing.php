@@ -41,6 +41,43 @@ function borrowingUser(PDO $pdo, int $id): array
     return $user;
 }
 
+function activeLoanCapacity(PDO $pdo, int $userId): array
+{
+    $q = $pdo->prepare('SELECT
+        (SELECT COUNT(*) FROM borrow_requests WHERE user_id=:borrow_user AND status IN ("checked_out","approved"))
+        + (SELECT COUNT(*) FROM reservations WHERE user_id=:reserved_user AND status="fulfilled")');
+    $q->execute(['borrow_user'=>$userId, 'reserved_user'=>$userId]);
+    $used = (int)$q->fetchColumn();
+    return ['limit'=>3, 'used'=>$used, 'remaining'=>max(0, 3 - $used)];
+}
+
+function borrowingCapacity(PDO $pdo, int $userId): array
+{
+    $q = $pdo->prepare('SELECT
+        (SELECT COUNT(*) FROM borrow_requests WHERE user_id=:borrow_user
+            AND status IN ("pending","awaiting_pickup","checked_out","approved"))
+        + (SELECT COUNT(*) FROM reservations WHERE user_id=:reserved_user AND status IN ("ready","fulfilled"))');
+    $q->execute(['borrow_user'=>$userId, 'reserved_user'=>$userId]);
+    $used = (int)$q->fetchColumn();
+    return ['limit'=>3, 'used'=>$used, 'remaining'=>max(0, 3 - $used)];
+}
+
+function requireBorrowingSlot(PDO $pdo, int $userId): void
+{
+    // Caller holds the borrower row after the book lock, before any consistent read.
+    if (borrowingCapacity($pdo, $userId)['used'] >= 3) {
+        throw new DomainException('The three-book limit is reached. Pending requests, pickup holds and checked-out books use a slot. A rejection, permitted cancellation or return releases a slot.', 409);
+    }
+}
+
+function requirePhysicalLoanSlot(PDO $pdo, int $userId): void
+{
+    // Converting an existing hold uses no new outstanding slot, even for legacy over-limit accounts.
+    if (activeLoanCapacity($pdo, $userId)['used'] >= 3) {
+        throw new DomainException('Borrowing Limit Reached: three books are already checked out. Return a book before another checkout.', 409);
+    }
+}
+
 function lockBorrowingBook(PDO $pdo, int $id): array
 {
     $stmt = $pdo->prepare('SELECT id, title, total_copies, borrowed_copies FROM books WHERE id = :id FOR UPDATE');
@@ -66,7 +103,7 @@ function hasActiveBorrowing(PDO $pdo, int $userId, int $bookId, int $ignoreBorro
 {
     $stmt = $pdo->prepare(
         'SELECT EXISTS(SELECT 1 FROM borrow_requests WHERE user_id = :borrow_user AND book_id = :borrow_book
-                       AND id <> :ignore_borrow AND status IN ("pending","awaiting_pickup","checked_out","approved"))
+                       AND id <> :ignore_borrow AND status IN ("checked_out","approved"))
              OR EXISTS(SELECT 1 FROM reservations WHERE user_id = :reserved_user AND book_id = :reserved_book
                        AND id <> :ignore_reservation AND status IN ("waiting","ready","fulfilled"))'
     );

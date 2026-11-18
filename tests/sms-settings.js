@@ -39,8 +39,8 @@ async function main() {
   const before=confirms;response={...enabled,permission:{available:true,allowed:false,version:3}};
   get('allowSmsNotifications').checked=false;await submit();verify(confirms===before,'OFF does not require paid-delivery confirmation');
   response={...enabled,can_manage:false};await get('refreshSmsSettings').listeners.click();
-  verify(get('allowSmsNotifications').disabled && get('saveSmsPermission').hidden,'librarian controls disabled and save hidden');
-  calls=[];await submit();verify(calls.length===0,'librarian submit handler cannot mutate');
+  verify(get('allowSmsNotifications').disabled && get('saveSmsPermission').hidden,'view-only controls disabled and save hidden');
+  calls=[];await submit();verify(calls.length===0,'view-only submit handler cannot mutate');
   response={...enabled,permission:{available:false,allowed:false,version:null}};await get('refreshSmsSettings').listeners.click();
   verify(get('allowSmsNotifications').disabled && get('saveSmsPermission').disabled,'missing storage fails closed in UI');
   verify(get('smsPermissionLabel').textContent.includes('setup required'),'missing setup explained');

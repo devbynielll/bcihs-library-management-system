@@ -26,8 +26,8 @@ if (getenv('BCIHS_PHASE8_ISOLATED') !== '1' || !getenv('BCIHS_SMS_ACCEPTANCE_ROO
         [$code]=http('sms-settings','GET',null,$session);check($code===403,'borrower settings read refused');
         post('sms-settings',['allowed'=>false,'version'=>0],$session,403);
     }
-    [$code,$view]=http('sms-settings','GET',null,$libSession);check($code===200 && !$view['can_manage'] && $view['audit']===[],'librarian can view status, never administrator audit');
-    post('sms-settings',['allowed'=>true,'version'=>$view['permission']['version'],'confirm_enable'=>true],$libSession,403);
+    [$code,$view]=http('sms-settings','GET',null,$libSession);check($code===200 && $view['can_manage'],'librarian may manage permission and review audit');
+    post('sms-settings',['allowed'=>$view['permission']['allowed'],'version'=>$view['permission']['version'],'confirm_enable'=>true],$libSession);
     [$code]=http('sms-settings','POST',['allowed'=>false,'version'=>0],$staff,false);check($code===403,'missing CSRF refused');
     $data=$state();
     post('sms-settings',['allowed'=>'false','version'=>$data['permission']['version']],$staff,422);

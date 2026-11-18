@@ -8,7 +8,7 @@
 - **Attendance:** staff can record library entry. Departure tracking is policy-controlled.
 - **Reports:** dashboard and report data are generated from stored transactions. The statistical circulation report counts checkout transactions; confirm the metric and signatories with the librarian before official use.
 - **SMS:** common notification events use the selected private provider adapter and shared duplicate protection/logs. The SMS permission, simulation/live mode, provider authorization, provider restrictions, and one-attempt test guards are distinct controls.
-- **Semaphore credit panel:** administrator-only read-only balance lookup with caching; refresh checks the provider balance, not message delivery.
+- **Semaphore credit panel:** authorized-staff-only read-only balance lookup with caching; refresh checks the provider balance, not message delivery.
 
 ## Operating rules
 
@@ -24,4 +24,6 @@ JavaScript test files run with `node tests/<suite>.js`. PHP unit/mock suites run
 
 ## Scope notes
 
-Provider delivery-status polling, scheduled reminders, and policy decisions such as attendance quotas, holiday handling, and official due-date rules require separate school approval. This handover does not authorize a live SMS, database migration, or production deployment.
+Provider delivery-status polling, activation of the implemented reminder scheduler, and policy decisions such as attendance quotas, holiday handling, and official due-date rules require separate school approval. This handover does not authorize a live SMS, database migration, or production deployment.
+
+For the latest local revision policy, migration prerequisites and inactive reminder scheduling, see [POST-DEFENSE-SETUP.md](POST-DEFENSE-SETUP.md).

@@ -16,4 +16,10 @@ A PHP and MySQL/MariaDB library system for Batangas City Integrated High School.
 3. Read [SECURITY.md](SECURITY.md) for configuration, data, and SMS safeguards.
 4. Read [HANDOVER.md](HANDOVER.md) for the feature guide and operational limits.
 
-The application does not include production database records or private configuration. SMS defaults to simulation; paid delivery requires private provider configuration, an independent server-side authorization, and administrator permission. This repository does not deploy automatically.
+The application does not include production database records or private configuration. SMS defaults to simulation; paid delivery requires private provider configuration, an independent server-side authorization, and authorized staff permission. This repository does not deploy automatically.
+
+## Post-defense revisions
+
+The current implementation includes unique normalized phone numbers, complete registration names, a CLI return-reminder runner, three outstanding book slots with a separate three-physical-loan safeguard, safe last-copy allocation, and routine rejected-record filtering with staff audit views. Approved librarians share library management controls with administrators. See [POST-DEFENSE-SETUP.md](POST-DEFENSE-SETUP.md) before updating an existing installation.
+
+Pulling code does not update database schemas, import demo records, enable SMS, schedule reminders, or deploy the hosted site.

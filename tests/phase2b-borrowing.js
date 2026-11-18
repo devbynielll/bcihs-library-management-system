@@ -76,8 +76,28 @@ verify(catalog.run('buttonFor({id:1,total_copies:1,borrowed_copies:0,requestable
 catalog.run("myReservationsByBook={1:{status:'fulfilled'}}");
 verify(catalog.run('buttonFor({id:1,total_copies:2,borrowed_copies:1,requestable_copies:1})').includes('Checked Out'),'reservation borrowers cannot request the same title again');
 verify(!catalog.requests.some(item=>/borrow-request-process|reservation-process/.test(item.url)),'opening the QR/catalog page performs no automatic borrowing mutation');
+catalog.run('myReservationsByBook={};borrowCapacity=0;');
+verify(catalog.run('buttonFor({id:123,requestable_copies:1})').includes('Three-book limit reached'),'zero outstanding slots disables requests');
+catalog.run('window.requestBook(123)');verify(!catalog.requests.some(item=>item.url==='backend/borrow-request-process.php'),'zero outstanding slots prevents submission');
+verify(catalog.run('buttonFor({id:123,requestable_copies:0})').includes('Reserve'),'Waiting list remains available without allocation');
+catalog.run('borrowCapacity=3;');
+verify(catalog.run('buttonFor({id:123,requestable_copies:1})').includes('Request to Borrow'),'available slots allow requesting');
 catalog.run('window.requestBook(123);window.requestBook(123);');
 verify(catalog.requests.filter(item=>item.url==='backend/borrow-request-process.php').length===1,'repeated catalog clicks submit at most one in-flight request');
+const warning=page('borrow-requests.js');
+warning.run('allRequests='+JSON.stringify([{...base,user_id:7,status:'pending'}])+";csrfToken='test';");
+let warningText='';let allowApproval=false;let approvalPosts=0;
+warning.context.window.libraryUI.confirm=async text=>{warningText=text;return allowApproval;};
+warning.context.fetch=async(url,options={})=>{
+  if(url.includes('borrower-loan-capacity'))return {ok:true,json:async()=>({activeLoanCapacity:{used:3,remaining:0,limit:3},borrowingCapacity:{used:3,remaining:0,limit:3}})};
+  if(options.method==='POST')approvalPosts++;
+  return {ok:true,json:async()=>({requests:[{...base,user_id:7,status:'pending'}],csrfToken:'test',success:true})};
+};
+await warning.run("window.act(1,'approve')");
+verify(!warningText.includes('Borrowing Limit Reached') && warningText.includes('hold one copy'),'existing pending request approval has no unnecessary capacity warning');
+verify(approvalPosts===0,'cancelling limit warning creates no hold');
+allowApproval=true;await warning.run("window.act(1,'approve')");verify(approvalPosts===1,'explicit proceed still allows approval under existing policy');
+warning.run('allRequests='+JSON.stringify([{...base,user_id:7,status:'awaiting_pickup'}]));await warning.run("window.act(1,'checkout')");verify(approvalPosts===1,'desktop full-capacity checkout does not submit');
 const transactions=page('transactions.js');
 verify(staff.run("formatDate('2026-10-29 00:30:00')").includes('29') && transactions.run("formatDate('2026-10-29 00:30:00')").includes('29'),'due dates remain on the Philippine day on an overseas device');
 verify(!transactions.run('durationFor('+JSON.stringify({...base,status:'awaiting_pickup',approved_at:'2026-10-01 09:00:00'})+')').includes('ongoing'),'awaiting pickup has no running loan duration');

@@ -10,5 +10,5 @@ return ['mode' => 'simulate', 'live_enabled' => false, 'provider' => 'simulation
     'unisms_delivery' => 'acceptance', // Separate one-attempt test policy; production needs final approval.
     'unisms_production_authorized' => false, // Private deployment approval, independent of the admin ON switch.
     'live_test' => null, // Separately authorized, expiring one-attempt scope; see SECURITY.md.
-    // Domestic phone => current network, verified by the owner. No prefix guessing.
+    // Acceptance-test recipient/network binding only; normal dispatch uses the event owner’s phone.
     'unisms_verified_networks' => []];

@@ -52,18 +52,14 @@ foreach ([401 => 'provider_authentication_rejected',403 => 'provider_authenticat
     verify($r['reason'] === $reason && $r['state'] === ($http === 503 ? 'unknown' : 'failed') && !str_contains(json_encode($r), 'PRIVATE_RAW_RESPONSE'), 'safe HTTP rejection/uncertainty: ' . $http);
 }
 foreach (['Insufficient credits' => 'provider_credit_rejected', "This Sender ID cannot send to Smart, TNT or Sun numbers" => 'provider_network_rejected'] as $text => $reason) {
-    verify(smsUniResult(422, json_encode(['errors' => [$text]]), '09171234567')['reason'] === $reason, 'recognizable provider validation receives a safe reason');
+    verify(smsUniResult(422, json_encode(['errors' => ['recipient' => [$text]]]), '09171234567')['reason'] === $reason, 'recognizable provider validation receives a safe reason');
 }
 foreach (['not json','{}','[]','{"message":{"status":"delivered","recipient":"09171234567","reference_id":"msg_mock-123"}}','{"message":{"status":"pending","recipient":"09991234567","reference_id":"msg_mock-123"}}','{"message":{"status":"pending","recipient":"09171234567","reference_id":"<img>"}}','{"message":{"status":[],"recipient":"09171234567","reference_id":"msg_mock-123"}}'] as $body) {
     verify(smsUniResult(201, $body, '09171234567')['state'] === 'unknown', 'malformed, mismatched, or unsupported response remains uncertain');
 }
 $never = static function ($payload) {throw new RuntimeException('Transport must not be called.');};
-foreach (['bad' => 'missing_or_invalid_phone','09181234567' => 'unisms_network_not_verified'] as $phone => $reason) {
+foreach (['bad' => 'missing_or_invalid_phone'] as $phone => $reason) {
     verify(uniMockDispatch($config, $phone, smsEventMessage('account_approved'), $never)['reason'] === $reason, 'invalid or unsupported/unverified recipient blocked before HTTP');
-}
-foreach (['smart','tnt','sun','unknown'] as $network) {
-    $blocked = $config; $blocked['unisms_verified_networks']['09171234567'] = $network;
-    verify(uniMockDispatch($blocked, '09171234567', smsEventMessage('account_approved'), $never)['reason'] === 'unisms_network_not_verified', 'disallowed recipient network: ' . $network);
 }
 foreach (['https://example.com','www.example.com','example.com','https://例え.jp','ftp://example.com','example.ph/path'] as $link) {
     verify(uniMockDispatch($config, '09171234567', 'Book ' . $link, $never)['reason'] === 'unisms_links_not_allowed', 'links blocked even when supplied through a title');

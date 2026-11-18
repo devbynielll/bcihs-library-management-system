@@ -20,13 +20,13 @@
     document.getElementById('smsEffectiveMode').textContent = data.delivery_mode;
     document.getElementById('smsConfigReadiness').textContent = data.configuration_message;
     document.getElementById('smsPermissionRole').textContent = data.can_manage
-      ? 'Only administrators can change this permission. Provider keys and live activation stay in private deployment configuration.'
-      : 'View only. Ask an authorized administrator to change notification permission.';
+      ? 'Administrators and approved librarians can change this permission. Provider keys and live activation stay in private deployment configuration.'
+      : 'View only. Ask authorized library staff to change notification permission.';
     const list = document.getElementById('smsSettingsAudit');
     list.replaceChildren();
     for (const row of data.audit || []) {
       const item = document.createElement('li');
-      item.textContent = `${row.changed_at} PHT · Administrator #${row.admin_id} · ${Number(row.previous_allowed) ? 'ON' : 'OFF'} → ${Number(row.new_allowed) ? 'ON' : 'OFF'} · revision ${row.setting_version}`;
+      item.textContent = `${row.changed_at} PHT · ${row.actor_role === 'librarian' ? 'Librarian' : 'Administrator'} #${row.admin_id} · ${Number(row.previous_allowed) ? 'ON' : 'OFF'} → ${Number(row.new_allowed) ? 'ON' : 'OFF'} · revision ${row.setting_version}`;
       list.appendChild(item);
     }
     document.getElementById('smsAuditDetails').hidden = !data.can_manage;

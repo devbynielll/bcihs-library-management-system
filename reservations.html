@@ -95,7 +95,7 @@
 
     <details class="panel pickup-policy">
       <summary>Pickup capacity settings</summary>
-      <p>Leave blank for unlimited. Limits count scheduled Waiting and Ready reservations across all titles; they do not create book copies. No automatic expiry applies. Staff must cancel unclaimed Waiting/Ready reservations to release holds.</p>
+      <p>Leave blank for unlimited. Limits count scheduled Waiting and Ready reservations across all titles; they do not create book copies. No automatic expiry applies. Waiting entries do not hold a copy. Staff can cancel unclaimed entries to release scheduled capacity; cancelling Ready also releases its copy hold.</p>
       <form id="pickupSettingsForm" class="pickup-settings-form">
         <label>Maximum per pickup date<input id="dailyLimit" type="number" min="1" max="65535" step="1" placeholder="Unlimited"></label>
         <label>Maximum per half-hour<input id="slotLimit" type="number" min="1" max="65535" step="1" placeholder="Unlimited"></label>
@@ -128,7 +128,7 @@
       <input type="text" id="searchInput" aria-label="Search reservations" placeholder="Search by student or book title…">
       <select id="statusFilter" aria-label="Filter by status">
         <option value="">All statuses</option>
-        <option value="waiting">Waiting</option>
+        <option value="waiting">Waiting list — no copy allocated</option>
         <option value="ready">Ready for Pickup</option>
         <option value="fulfilled">Checked Out</option>
         <option value="returned">Returned</option>
