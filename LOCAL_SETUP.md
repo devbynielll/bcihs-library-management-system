@@ -10,7 +10,7 @@ Use the latest reviewed `main` from the authorized repository, or the explicitly
 git clone https://github.com/devbynielll/bcihs-library-management-system.git bcihs-library
 ```
 
-Private repository access is required. Alternatively use **Code → Download ZIP**, extract it and rename the application folder to `bcihs-library`. Do not nest an extra project folder inside it. Preserve existing local files before updating; never copy private configuration or uploads from another installation.
+The GitHub repository is currently public; browsing or downloading its source does not require collaborator access. Private runtime configuration and school data must still remain outside Git. Alternatively use **Code → Download ZIP**, extract it and rename the application folder to `bcihs-library`. Do not nest an extra project folder inside it. Preserve existing local files before updating; never copy private configuration or uploads from another installation.
 
 For an existing clone, inspect `git status`, preserve local work and fetch/review the intended branch before pulling. A push to GitHub does not automatically update another person's localhost. This working source and a clean GitHub export may have different schema filenames; inspect `sql/` before importing.
 
@@ -42,7 +42,9 @@ If PHP is not on PATH, use the full executable path from your own installation; 
 
 Use phpMyAdmin through MAMP/XAMPP. Create **a new, empty local database named `bcihs_library`**, with `utf8mb4` / `utf8mb4_unicode_ci`. This name is required by the existing local administrator/check helpers. Do not use a populated school database for a fresh installation.
 
-Import **`sql/schema.sql`** once into that selected empty database. This consolidated schema contains all 12 tables, `users.phone_normalized` and unique index `uq_users_phone_normalized`, SMS permission/audit tables, and `sms_notification_audit.actor_role`. SMS permission starts OFF. It contains no user accounts, catalog records, passwords or provider credentials.
+**Never import `sql/schema.sql` over an existing populated `bcihs_library` database.** Use the existing-database upgrade procedure instead.
+
+Import **`sql/schema.sql`** once into the selected new, empty database. This consolidated schema contains all 12 tables, `users.phone_normalized` and unique index `uq_users_phone_normalized`, SMS permission/audit tables, and `sms_notification_audit.actor_role`. SMS permission starts OFF. It contains no user accounts, catalog records, passwords or provider credentials.
 
 **No separate migration is needed for a fresh import of this schema.** Do not also import `sql/sms-notification-settings.sql` or execute its staff-audit ALTER: those structures are already included. Migrations are for an existing database missing those structures.
 

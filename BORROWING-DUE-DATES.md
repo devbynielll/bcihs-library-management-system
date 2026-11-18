@@ -1,6 +1,6 @@
 # Borrowing due dates
 
-The system starts with a **14-calendar-day** default. Administrators can change the school-approved default; the saved policy applies to future checkouts only.
+The system starts with a **14-calendar-day** default. Administrators and approved librarians can change the school-approved default; the saved policy applies to future checkouts only.
 
 ## At checkout
 
@@ -10,7 +10,7 @@ Student borrowing history, staff transactions, reports, and checkout notificatio
 
 ## Change the default
 
-Use the administrator-only **Default borrowing period** controls in the staff workflow. Enter the approved calendar-day count and reason, then review the confirmation. The server checks the administrator role, CSRF token, current policy version, and allowed range, and records a policy audit entry. A conflict means another administrator changed the policy; refresh and review before saving again.
+Administrators and approved librarians can use the **Default borrowing period** controls in the staff workflow. Enter the approved calendar-day count and reason, then review the confirmation. The server checks the authenticated staff role, CSRF token, current policy version, and allowed range, and records a policy audit entry identifying the actor ID and role. Older entries without an explicit role are displayed as administrator entries. A conflict means another staff member changed the policy; refresh and review before saving again.
 
 Changing the default never silently changes active or historical loans. Existing loans keep their saved deadline. Use the existing return/extension policy approved by the school for an active loan; do not directly edit database dates.
 
