@@ -2,7 +2,7 @@
 window.borrowing = {
   label(status) {
     return ({pending:'Pending', awaiting_pickup:'Approved / Awaiting Pickup', checked_out:'Checked Out',
-      approved:'Checked Out', returned:'Returned', rejected:'Rejected', waiting:'Waiting', ready:'Ready for Pickup',
+      approved:'Checked Out', returned:'Returned', rejected:'Rejected', waiting:'Waiting list — no copy allocated', ready:'Ready for Pickup',
       fulfilled:'Checked Out', cancelled:'Cancelled', borrowed:'Checked Out'})[status] || status || 'Unknown';
   },
   roleLabel(role) {

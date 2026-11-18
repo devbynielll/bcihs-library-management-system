@@ -14,7 +14,8 @@ try {
     if (!$user || $user['account_status']!=='accepted') throw new DomainException('Your account is not approved.',401);
     $name=accountText($input['full_name']??null,150);$phone=accountPhone($input['phone']??null);
     if ($phone===null) throw new DomainException('Enter a valid Philippine mobile number.',422);
-    $values=['full_name'=>$name,'phone'=>$phone];
+    requireUniqueAccountPhone($pdo,$phone,$id);
+    $values=['full_name'=>$name,'phone'=>$phone,'phone_normalized'=>$phone];
     if ($user['role']==='student') $values['year_section']=accountText($input['year_section']??null,50);
     elseif (in_array($user['role'],['teacher','librarian','staff','employee'],true)) $values['department']=accountText($input['department']??'',150,false)?:null;
     else {
@@ -34,6 +35,7 @@ try {
     echo json_encode(['success'=>true,'message'=>'Profile updated successfully.']);
 } catch(Throwable $exception){
     if ($pdo->inTransaction())$pdo->rollBack();
+    if ($exception instanceof PDOException && $exception->getCode()==='23000') $exception=new DomainException('That email or mobile number is already registered to another account.',409);
     $code=$exception instanceof DomainException?$exception->getCode():500;
     http_response_code($code);echo json_encode(['success'=>false,'message'=>$exception instanceof DomainException?$exception->getMessage():'Could not save your profile. Please try again.']);
 }

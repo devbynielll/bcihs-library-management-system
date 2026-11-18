@@ -17,8 +17,14 @@ function pickupDate(value) {
 function renderPickup(data) {
   pickupRequest = data.request; pickupCsrf = data.csrfToken;
   const request = data.request;
+  const capacity = data.activeLoanCapacity;
+  const knownCapacity = capacity && Number.isInteger(capacity.used) && Number.isInteger(capacity.remaining);
+  const atLimit = knownCapacity && capacity.used >= 3;
+  const warning = document.getElementById('pickupLimitWarning');
+  warning.hidden = !atLimit;
+  warning.textContent = atLimit ? 'Borrowing Limit Reached — ' + capacity.used + '/3 books currently borrowed. Return a book, then Recheck status before checkout.' : '';
   const fields = [
-    ['Borrower', request.full_name], ['Identifier', request.student_id || request.id_number || request.email],
+    ['Borrower', request.full_name], ['Currently borrowed', knownCapacity ? capacity.used + '/3' : 'Unavailable — recheck status'], ['Identifier', request.student_id || request.id_number || request.email],
     ['Year / section', request.year_section], ['Book', request.title], ['Author', request.author],
     ['Call number', request.call_number], ['Request', '#' + request.id], ['Requested', pickupDate(request.requested_at)],
     ['Approved', pickupDate(request.approved_at)], ['Account approval', request.account_status === 'accepted' ? 'Approved' : request.account_status],
@@ -33,11 +39,15 @@ function renderPickup(data) {
   document.getElementById('pickupEligibility').textContent = data.eligible
     ? 'Awaiting pickup. Verify the borrower and book before confirming physical handover.'
     : 'This QR cannot be used for checkout. It is already used, no longer awaiting pickup, or the account is not approved.';
-  checkoutButton.hidden = !data.eligible; pickupDetails.hidden = false;
+  checkoutButton.hidden = request.status !== 'awaiting_pickup' || request.account_status !== 'accepted';
+  checkoutButton.disabled = !data.eligible || !knownCapacity || atLimit;
+  if (atLimit) document.getElementById('pickupEligibility').textContent = 'Approval holds a copy; it does not override the three-book checkout limit.';
+  pickupDetails.hidden = false;
 }
 
 async function loadPickup() {
   if (pickupBusy) return;
+  document.getElementById('pickupLimitWarning').hidden = true;
   pickupRequest = null; pickupCsrf = ''; document.getElementById('pickupFields').replaceChildren(); pickupDetails.hidden = true; checkoutButton.hidden = true; staffSignin.hidden = true;
   if (!validPickupToken) { pickupMessage.textContent = 'Invalid pickup QR. Ask the borrower to reopen their approved request.'; return; }
   pickupMessage.textContent = 'Checking pickup QR…'; refreshPickup.disabled = true;
@@ -55,7 +65,7 @@ async function loadPickup() {
 
 refreshPickup.addEventListener('click', loadPickup);
 checkoutButton.addEventListener('click', async () => {
-  if (pickupBusy || !pickupRequest || checkoutButton.hidden) return;
+  if (pickupBusy || !pickupRequest || checkoutButton.hidden || checkoutButton.disabled) return;
   pickupBusy = true; checkoutButton.disabled = true; refreshPickup.disabled = true;
   let due = null;
   try {

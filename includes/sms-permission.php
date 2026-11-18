@@ -34,8 +34,15 @@ function smsPermissionState(PDO $pdo, bool $forUpdate = false): array
     }
 }
 
-function smsPermissionChange(PDO $pdo, int $adminId, array $input): array
+function smsAuditHasActorRole(PDO $pdo): bool
 {
+    return (bool)$pdo->query("SHOW COLUMNS FROM sms_notification_audit LIKE 'actor_role'")->fetch();
+}
+
+function smsPermissionChange(PDO $pdo, int $adminId, array $input, string $actorRole = 'admin'): array
+{
+    if (!in_array($actorRole, ['admin','librarian'], true)) throw new DomainException('Staff access required.', 403);
+    if ($actorRole === 'librarian' && !smsAuditHasActorRole($pdo)) throw new DomainException('SMS staff-audit migration is required before librarians can change this permission.', 503);
     if (!is_bool($input['allowed'] ?? null) || !is_int($input['version'] ?? null) || $input['version'] < 0)
         throw new DomainException('Send a valid notification permission and version.', 422);
     if ($input['allowed'] && ($input['confirm_enable'] ?? false) !== true)
@@ -45,14 +52,18 @@ function smsPermissionChange(PDO $pdo, int $adminId, array $input): array
         $pdo->beginTransaction();
         $state = smsPermissionState($pdo, true);
         if (!$state['available']) throw new DomainException('SMS permission storage needs deployment setup. Sending remains disabled.', 503);
-        if ($state['version'] !== $input['version']) throw new DomainException('Another administrator changed this setting. Refresh before saving.', 409);
+        if ($state['version'] !== $input['version']) throw new DomainException('Another staff member changed this setting. Refresh before saving.', 409);
         if ($state['allowed'] !== $input['allowed']) {
             $next = $state['version'] + 1;
             $pdo->prepare('UPDATE sms_notification_settings SET allow_notifications=:allowed,version=:version WHERE id=1')
                 ->execute(['allowed' => (int)$input['allowed'], 'version' => $next]);
-            $pdo->prepare('INSERT INTO sms_notification_audit(admin_id,previous_allowed,new_allowed,setting_version,changed_at)
-                VALUES(:admin,:previous,:new,:version,UTC_TIMESTAMP())')
-                ->execute(['admin' => $adminId, 'previous' => (int)$state['allowed'], 'new' => (int)$input['allowed'], 'version' => $next]);
+            // admin_id is the legacy actor-ID column; actor_role distinguishes the account tables.
+            $roleColumn = $actorRole === 'librarian' ? ',actor_role' : '';
+            $roleValue = $actorRole === 'librarian' ? ',:role' : '';
+            $parameters = ['admin'=>$adminId, 'previous'=>(int)$state['allowed'], 'new'=>(int)$input['allowed'], 'version'=>$next];
+            if ($actorRole === 'librarian') $parameters['role'] = $actorRole;
+            $pdo->prepare('INSERT INTO sms_notification_audit(admin_id,previous_allowed,new_allowed,setting_version,changed_at' . $roleColumn . ')
+                VALUES(:admin,:previous,:new,:version,UTC_TIMESTAMP()' . $roleValue . ')')->execute($parameters);
         }
         $pdo->commit();
         return smsPermissionState($pdo);

@@ -116,7 +116,6 @@
         document.getElementById('countTotal').textContent = allTx.length.toLocaleString();
         document.getElementById('countBorrowed').textContent = allTx.filter(t => borrowing.isCheckedOut(t.status)).length.toLocaleString();
         document.getElementById('countReturned').textContent = allTx.filter(t => t.status === 'returned').length.toLocaleString();
-        document.getElementById('countRejected').textContent = allTx.filter(t => t.status === 'rejected').length.toLocaleString();
 
         document.getElementById('loadingMsg').style.display = 'none';
         document.getElementById('txTable').style.display = 'table';

@@ -8,8 +8,8 @@ foreach ([null,$studentSession,$teacherSession,$visitorSession] as $unauthorized
 }
 $initialPolicy=$policy($staff);
 check($initialPolicy['days']===14 && $initialPolicy['version']===0 && !is_file($dueRoot.'/includes/borrowing-policy.json'),'unconfigured policy retains actual 14-day default without creating a settings file');
-check(!$policy($libSession)['can_manage'],'librarian may view, not edit, the default');
-post('borrowing-policy',['days'=>3,'version'=>0,'reason'=>'School approved fixture','confirm_change'=>true],$libSession,403);
+check($policy($libSession)['can_manage'],'librarian may manage default borrowing period');
+post('borrowing-policy',['days'=>14,'version'=>0,'reason'=>'Retain school approved default','confirm_change'=>true],$libSession);
 [$code]=http('borrowing-policy','POST',['days'=>3,'version'=>0,'reason'=>'School approved fixture','confirm_change'=>true],$staff,false);check($code===403,'default policy requires CSRF');
 foreach ([0,366,'3.5',[],true] as $days) post('borrowing-policy',['days'=>$days,'version'=>0,'reason'=>'Fixture','confirm_change'=>true],$staff,422);
 post('borrowing-policy',['days'=>3,'version'=>0,'reason'=>'','confirm_change'=>true],$staff,422);
@@ -86,9 +86,9 @@ check($match[0]['due_date']===$result['due_date'],'loan reports retain the reser
 $manualBook=book();$date=(new DateTimeImmutable('+7 days',new DateTimeZone('Asia/Manila')))->format('Y-m-d');
 $manualPreview=post('checkout-due-preview',['source'=>'manual','id'=>$manualBook,'due_mode'=>'date','due_date'=>$date],$staff);
 [$code,$form]=http('borrow-requests-data','GET',null,$staff);
-$manual=post('borrow-request-add',['borrower_name'=>'Due fixture walk-in','book_id'=>$manualBook,'confirm_checkout'=>true,'checkout_token'=>$form['manualCheckoutToken'],'due_preview_token'=>$manualPreview['due_preview_token']],$staff);
+$manual=post('borrow-request-add',['user_id'=>$dueStudent,'borrower_name'=>'Due fixture walk-in','book_id'=>$manualBook,'confirm_checkout'=>true,'checkout_token'=>$form['manualCheckoutToken'],'due_preview_token'=>$manualPreview['due_preview_token']],$staff);
 check($manual['due_date']===$date.' 23:59:59','custom calendar date is saved at Philippine end of day');
-$manualAgain=post('borrow-request-add',['borrower_name'=>'Due fixture walk-in','book_id'=>$manualBook,'confirm_checkout'=>true,'checkout_token'=>$form['manualCheckoutToken'],'due_preview_token'=>$manualPreview['due_preview_token']],$staff);
+$manualAgain=post('borrow-request-add',['user_id'=>$dueStudent,'borrower_name'=>'Due fixture walk-in','book_id'=>$manualBook,'confirm_checkout'=>true,'checkout_token'=>$form['manualCheckoutToken'],'due_preview_token'=>$manualPreview['due_preview_token']],$staff);
 check($manualAgain['id']===$manual['id'] && $manualAgain['replayed'],'manual due selection preserves checkout nonce idempotency');
 
 $stale=post('checkout-due-preview',['source'=>'borrow','id'=>$otherLoan,'due_mode'=>'default'],$staff);

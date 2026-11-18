@@ -30,7 +30,7 @@
     accepted:'Provider accepted (delivery unconfirmed)',sent:'Provider reports sent (handset unconfirmed)',retrying:'Provider retrying (no app resend)',
     failed:'Failed / rejected',skipped:'Skipped',unknown:'Unknown — review before retry',legacy_sent:'Legacy sent (unverified)'};
   const providerLabels = {simulation:'Simulation',semaphore:'Semaphore',unisms:'UniSMS',legacy:'Historical provider'};
-  const eventLabels = {account_approved:'Account approval',borrow_ready:'Borrowing ready for pickup',borrow_rejected:'Borrowing rejection',
+  const eventLabels = {due_reminder:'Return reminder',account_approved:'Account approval',borrow_ready:'Borrowing ready for pickup',borrow_rejected:'Borrowing rejection',
     checkout:'Checkout with due date',reservation_ready:'Reservation ready',password_reset:'Password reset',legacy:'Historical / other'};
   const reasonLabels = {
     notifications_disabled:'Administrator notification permission is OFF. No API request, queue or later replay.',

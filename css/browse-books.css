@@ -148,3 +148,11 @@
   }
 
 .extracted-style-1 { display:none; }
+
+.request-capacity { margin-bottom: 20px; padding: 18px 22px; border: 1px solid #dfcfca; border-radius: 12px; background: #fff; color: #671521; }
+.request-capacity[hidden] { display: none; }
+.request-capacity p { margin: 6px 0 0; color: #595253; font-size: .9rem; line-height: 1.5; }
+.request-capacity.is-full { background: #fff7ed; border-color: #e7c99f; }
+
+.catalog-page .borrow-btn.limit-reached { background: #e9e7e5; color: #57534e; cursor: not-allowed; }
+.catalog-page .borrow-btn.approved.pickup-ready { background: #e2f3e7; color: #236239; cursor: default; }

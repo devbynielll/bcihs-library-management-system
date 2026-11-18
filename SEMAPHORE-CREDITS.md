@@ -1,6 +1,6 @@
 # Semaphore credit balance
 
-Authenticated administrators can expand **View SMS Credits — Semaphore** on **SMS Logs & Settings** to view the account's remaining `credit_balance`, the last successful update time, and a Refresh button.
+Authenticated administrators and approved librarians can expand **View SMS Credits — Semaphore** on **SMS Logs & Settings** to view the account's remaining `credit_balance`, the last successful update time, and a Refresh button.
 
 The server uses Semaphore's read-only `GET /api/v4/account` endpoint and a shared server-side cache/cooldown. This check does not send a message, consume SMS credits, change notification permission, switch providers, or approve a sender name. A displayed balance is not proof of message delivery or Sender Name approval. The SMS Logs refresh reloads local records only and does not poll Semaphore delivery status.
 

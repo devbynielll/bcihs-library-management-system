@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
   id_number      VARCHAR(50)   NULL UNIQUE,
   department     VARCHAR(150)  NULL,
   phone          VARCHAR(30)   NULL,
+  phone_normalized CHAR(11) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  UNIQUE KEY uq_users_phone_normalized (phone_normalized),
   avatar_path    VARCHAR(255)  NULL,
   password_hash  VARCHAR(255)  NOT NULL,
   role           ENUM('student','teacher','librarian','staff','employee','visitor') NOT NULL,
@@ -231,6 +233,7 @@ INSERT INTO sms_notification_settings(id,allow_notifications,version) VALUES(1,0
 CREATE TABLE sms_notification_audit (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     admin_id INT UNSIGNED NOT NULL,
+    actor_role ENUM('admin','librarian') NOT NULL DEFAULT 'admin',
     previous_allowed TINYINT UNSIGNED NOT NULL,
     new_allowed TINYINT UNSIGNED NOT NULL,
     setting_version INT UNSIGNED NOT NULL UNIQUE,

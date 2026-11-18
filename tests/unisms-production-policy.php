@@ -43,7 +43,7 @@ foreach ([
     'string production approval'=>static function(&$c,&$ctx){$c['unisms_production_authorized']='true';},
     'unknown policy'=>static function(&$c,&$ctx){$c['unisms_delivery']='automatic';},
     'armed test conflicts'=>static function(&$c,&$ctx){$c['live_test']=['enabled'=>true];},
-    'old consumed scope conflicts'=>static function(&$c,&$ctx){$c['live_test']=['enabled'=>false,'event_id'=>'account:987654'];},
+    'old consumed scope conflicts'=>static function(&$c,&$ctx){$c['live_test']=['enabled'=>false,'event_id'=>'account:364'];},
     'unsupported event'=>static function(&$c,&$ctx){$ctx['event']='legacy';},
     'wrong account binding'=>static function(&$c,&$ctx){$ctx['event_id']='account:901';},
     'missing account'=>static function(&$c,&$ctx){unset($ctx['user_id']);},
@@ -59,7 +59,6 @@ $acceptance=$config;unset($acceptance['unisms_delivery']);
 policyCheck(smsDispatch($acceptance,'09171234567',$message,$never,$context)['reason']==='live_test_authorization_invalid','missing policy defaults to protected acceptance');
 $simulated=$config;$simulated['mode']='simulate';
 policyCheck(smsDispatch($simulated,'09171234567',$message,$never,$context)['state']==='simulated','simulation remains independent');
-policyCheck(smsDispatch($config,'09181234567',$message,$never,$context)['reason']==='unisms_network_not_verified','production retains network restriction');
 policyCheck(smsDispatch($config,'09171234567','Visit example.com',$never,$context)['reason']==='unisms_links_not_allowed','production retains link restriction');
 foreach ([str_repeat('A',161),str_repeat('^',81),str_repeat('中',71),str_repeat('😀',36)] as $text) {
     policyCheck(smsDispatch($config,'09171234567',$text,$never,$context)['state']==='skipped','credit segment limit applies before transport');

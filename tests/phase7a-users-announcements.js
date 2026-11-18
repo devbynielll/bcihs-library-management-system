@@ -16,7 +16,7 @@ const axisLabels=[...users.get('chartHolder').innerHTML.matchAll(/text-anchor="e
 verify(axisLabels.join(',')==='0,1,2,3,4','small registration counts have distinct integer chart labels');
 vm.runInContext(`allUsers=[{id:1,full_name:'<img onerror=x>',student_id:'<script>x</script>',role:'student',account_status:'pending',has_history:0},{id:2,full_name:'Teacher',id_number:'TCH2',role:'teacher',account_status:'accepted',has_history:1},{id:3,full_name:'Rejected',email:'visitor@example.invalid',role:'visitor',account_status:'rejected',has_history:0}];`,users.context);
 users.api.applyFilters();
-verify(users.get('countBadge').textContent.includes('3 of 3'),'all users counted');
+verify(users.get('countBadge').textContent.includes('2 of 3'),'routine list excludes rejected accounts');
 verify(!users.get('usersBody').innerHTML.includes('<script>') && users.get('usersBody').innerHTML.includes('&lt;script&gt;'),'user identifier is escaped');
 verify(!users.get('usersBody').innerHTML.includes('<img'),'user name is escaped');
 verify(users.get('usersBody').innerHTML.includes('History linked — deletion unavailable'),'history restriction explained');
@@ -26,8 +26,8 @@ users.get('statusFilter').value='accepted';users.api.applyFilters();verify(users
 verify(!users.get('usersBody').innerHTML.includes('action-btn reject'),'approved account has no pending-review Reject control');
 verify(users.get('usersBody').innerHTML.includes('>View') && users.get('usersBody').innerHTML.includes('stroke="currentColor"'),'View has a permanent visible label and inherited icon color');
 verify(users.get('usersBody').innerHTML.includes('class="user-actions"'),'account actions form a separate aligned group');
-users.get('roleFilter').value='';users.get('statusFilter').value='';users.get('searchInput').value='visitor@example';users.api.applyFilters();verify(users.get('countBadge').textContent.includes('1 of 3'),'email identifier search supported');
-users.get('searchInput').value='TCH2';users.api.applyFilters();verify(users.get('usersBody').innerHTML.includes('Teacher'),'staff ID search');
+users.get('roleFilter').value='';users.get('statusFilter').value='';users.get('searchInput').value='visitor@example';users.api.applyFilters();verify(users.get('usersBody').innerHTML.includes('No users found'),'routine search cannot expose rejected accounts');users.get('statusFilter').value='rejected';users.api.applyFilters();verify(users.get('countBadge').textContent.includes('1 of 3'),'email identifier search supported');
+users.get('statusFilter').value='';users.get('searchInput').value='TCH2';users.api.applyFilters();verify(users.get('usersBody').innerHTML.includes('Teacher'),'staff ID search');
 verify(users.api.formatDate('2026-10-27 00:01:00').includes('27'),'Philippine date independent of Honolulu device');
 verify(users.api.formatDateTime('2026-10-27 00:01:00').includes('27'),'Philippine profile date/time');
 users.context.window.setAccountStatus(2,'accepted');verify(users.get('accountActionPrompt').textContent.includes('Approve Teacher'),'account action requires explicit confirmation');

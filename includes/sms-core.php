@@ -72,9 +72,7 @@ function smsDispatch(array $config, $phone, string $message, callable $transport
 
 function smsUniRestriction(array $config, string $phone, string $message): ?string
 {
-    // A prefix cannot establish the current network of a ported number.
-    $network = ($config['unisms_verified_networks'] ?? [])[$phone] ?? '';
-    if (!in_array($network, ['globe', 'dito'], true)) return 'unisms_network_not_verified';
+    // UniSMS validates actual network support; never infer it from a prefix.
     if (mb_strlen($message) > 160) return 'unisms_message_too_long';
     if (smsUniSegments($message) !== 1) return 'unisms_message_segment_limit';
     if (preg_match('~(?:https?:|www\.|[\p{L}\p{N}-]+\.[\p{L}]{2,}|[\p{L}\p{N}-]+\s*:\s*//)~iu', $message)) return 'unisms_links_not_allowed';
@@ -119,6 +117,7 @@ function smsUniProductionScope(array $context): bool
         'borrow_ready', 'borrow_rejected' => preg_match('/^borrow:[1-9][0-9]*$/D', $id) === 1,
         'reservation_ready' => preg_match('/^reservation:[1-9][0-9]*$/D', $id) === 1,
         'checkout' => preg_match('/^(borrow|reservation):[1-9][0-9]*$/D', $id) === 1,
+        'due_reminder' => preg_match('/^(borrow|reservation):[1-9][0-9]*:due:[0-9]{8}$/D', $id) === 1,
         'password_reset' => preg_match('/^reset:' . $userId . ':[a-f0-9]{10}$/D', $id) === 1,
         default => false,
     };
@@ -144,6 +143,17 @@ function smsUniDispatch(array $config, string $phone, string $message, callable 
     } catch (Throwable $exception) {return smsResult('unknown', 'transport_interrupted_check_provider_before_retry');}
 }
 
+function smsUniNetworkRejected($error): bool
+{
+    // Only recipient validation messages identify a network rejection. Other fields stay generic.
+    $messages = is_array($error) ? ($error['errors']['recipient'] ?? null) : null;
+    if (!is_array($messages)) return false;
+    foreach ($messages as $message) {
+        if (is_string($message) && preg_match("/^This Sender ID (?:cannot|can't) send to (?:Smart, TNT or Sun|Smart|TNT|Sun) numbers[.!]?(?: \.\.\.)?$/D", trim($message))) return true;
+    }
+    return false;
+}
+
 function smsUniResult(int $http, $body, string $phone): array
 {
     if ($http < 200 || $http >= 300) {
@@ -154,11 +164,11 @@ function smsUniResult(int $http, $body, string $phone): array
             $text = is_array($error) ? json_encode($error['errors'] ?? $error['message'] ?? '') : '';
             $validationReason = match (true) {
                 (bool)preg_match('/insufficient.{0,30}credits?|not enough.{0,30}credits?/i', $text) => 'provider_credit_rejected',
-                (bool)preg_match('/(?:smart|tnt|sun)/i', $text) => 'provider_network_rejected',
+                smsUniNetworkRejected($error) => 'provider_network_rejected',
                 default => 'provider_validation_rejected'
             };
         }
-        return smsResult($http === 0 || $http >= 500 ? 'unknown' : 'failed', match ($http) {
+        return smsResult($http === 0 || $http >= 500 ? 'unknown' : ($validationReason === 'provider_network_rejected' ? 'skipped' : 'failed'), match ($http) {
             401, 403 => 'provider_authentication_rejected', 422 => $validationReason,
             429 => 'provider_rate_limited', 402 => 'provider_credit_rejected',
             default => $http >= 500 ? 'provider_unavailable' : 'provider_http_rejected'
@@ -194,6 +204,7 @@ function smsEventMessage(string $event, array $details = []): string
         'account_approved' => 'BCIHS Library: Your account is approved. You may sign in to the library portal.',
         'borrow_ready' => 'BCIHS Library: "' . $title . '" is approved and held for pickup. Show your request QR to staff. Not yet checked out.',
         'borrow_rejected' => 'BCIHS Library: Your request for "' . $title . '" was not approved. Please contact library staff.',
+        'due_reminder' => 'BCIHS Library: Reminder: Your borrowed book is due tomorrow, ' . substr(smsEventDate($details['due_date'] ?? null),0,12) . '. Please return it on time. Thank you.',
         'checkout' => 'BCIHS Library: "' . $title . '" checked out. Due ' . smsEventDate($details['due_date'] ?? null) . ' (PHT). Please return on time.',
         'reservation_ready' => 'BCIHS Library: "' . $title . '" is ready for pickup' . (!empty($details['pickup_at']) ? ' on ' . smsEventDate($details['pickup_at']) . ' (PHT)' : '') . '. A copy is held; staff must confirm handover.',
         default => throw new DomainException('Unsupported notification event.')

@@ -51,3 +51,5 @@ See [HANDOVER.md](HANDOVER.md) for the database-free and isolated test commands.
 ## Existing database
 
 Do not re-import `sql/schema.sql` over an existing database. Back up the database privately, inspect the applied schema, then select only the missing reviewed migration from `sql/`. Apply migrations manually during a maintenance window, one at a time. No migration is run automatically by page requests.
+
+For existing installations receiving the post-defense revisions, follow [POST-DEFENSE-SETUP.md](POST-DEFENSE-SETUP.md) before testing registration or librarian SMS settings.

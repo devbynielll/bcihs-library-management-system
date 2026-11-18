@@ -2,6 +2,7 @@
   let allBooks = [];
   let csrfToken = '';
   let canBorrow = true;
+  let borrowCapacity = 0;
   const submittingRequests = new Set();
   let myRequestByBook = {};  // Active request/loan status by book ID.
   let myReservationsByBook = {};  // book_id -> active reservation
@@ -36,24 +37,25 @@
       return `<button class="borrow-btn pending" disabled>Request Pending</button>`;
     }
     if (myStatus === 'awaiting_pickup') {
-      return '<button class="borrow-btn approved" disabled>Approved — Awaiting Pickup</button><p class="pickup-info">A copy is held. The loan starts when staff confirms handover.</p>';
+      return '<p class="pickup-info">A copy is held. The loan starts when staff confirms handover.</p><button class="borrow-btn approved pickup-ready" disabled>Approved — Awaiting Pickup</button>';
     }
     if (borrowing.isCheckedOut(myStatus)) {
       return `<button class="borrow-btn approved" disabled>Already Borrowed</button>`;
     }
     if (myReservation && myReservation.status === 'waiting') {
       const actionLabel = myReservation.pickup_at ? 'Change Preferred Pickup' : 'Choose Pickup Time';
-      return `<button class="borrow-btn available" onclick="openPickupDialog(${book.id}, 'schedule')">${actionLabel}</button><p class="pickup-info">Schedule can be changed while waiting. It is final once ready.</p>${pickupInfo(myReservation)}${cancelReservationButton(myReservation)}`;
+      return `<button class="borrow-btn available" onclick="openPickupDialog(${book.id}, 'schedule')">${actionLabel}</button><p class="pickup-info">Waiting list — no copy allocated. Schedule can be changed while waiting; wait for Ready for Pickup.</p>${pickupInfo(myReservation)}${cancelReservationButton(myReservation)}`;
     }
     if (myReservation && myReservation.status === 'fulfilled') {
       return '<button class="borrow-btn approved" disabled>Checked Out</button>';
     }
     if (myReservation && myReservation.status === 'ready') {
-      return `<button class="borrow-btn approved" disabled>Ready to Pick Up</button><p class="pickup-info">A copy is held. Bring your library identification; staff confirms physical checkout. Contact staff if you cannot attend.</p>${pickupInfo(myReservation)}${cancelReservationButton(myReservation)}`;
+      return `<button class="borrow-btn approved pickup-ready" disabled>Ready to Pick Up</button><p class="pickup-info">A copy is held. Bring your library identification; staff confirms physical checkout. Contact staff if you cannot attend.</p>${pickupInfo(myReservation)}${cancelReservationButton(myReservation)}`;
     }
     if (available <= 0) {
       return `<button class="borrow-btn available" onclick="reserveBook(${book.id})">Reserve</button>`;
     }
+    if (borrowCapacity <= 0) return '<button class="borrow-btn unavailable limit-reached" disabled>Three-book limit reached</button>';
     return `<button class="borrow-btn available" onclick="requestBook(${book.id})">Request to Borrow</button>`;
   }
 
@@ -136,7 +138,7 @@
   }
 
   window.requestBook = function(bookId) {
-    if (!canBorrow || submittingRequests.has(bookId)) return;
+    if (!canBorrow || borrowCapacity <= 0 || submittingRequests.has(bookId)) return;
     submittingRequests.add(bookId);
     applyFilter();
 
@@ -226,6 +228,15 @@
         allBooks = booksData.books;
         canBorrow = booksData.canBorrow !== false;
         csrfToken = booksData.csrfToken || '';
+        const capacity = booksData.borrowingCapacity;
+        borrowCapacity = capacity && Number.isInteger(capacity.remaining) ? capacity.remaining : 0;
+        const counter = document.getElementById('requestCapacity');
+        if (counter) {
+          counter.hidden = !canBorrow || !capacity;
+          counter.classList.toggle('is-full', borrowCapacity === 0);
+          document.getElementById('requestCapacityCount').textContent = `Available Book Slots: ${borrowCapacity}/3`;
+          document.getElementById('requestCapacityHint').textContent = (borrowCapacity === 0 ? 'You have reached the 3-book limit. A slot becomes available when a request is rejected, a permitted cancellation is completed, or a borrowed book is returned. ' : '') + 'Pending requests, approved pickup holds and checked-out books each use one slot. Waiting-list reservations do not count.';
+        }
         myRequestByBook = {};
         (requestsData.requests || []).forEach(r => {
           if (['pending','awaiting_pickup','checked_out','approved'].includes(r.status)) {

@@ -100,7 +100,7 @@ function smsStorageState(string $state): string
     return match ($state) {'accepted','queued','pending','sent','retrying' => 'sent', 'failed','unknown' => 'failed', default => 'skipped'};
 }
 
-function send_sms(PDO $pdo, ?int $userId, ?string $phone, string $message, string $event = 'legacy', ?string $eventKey = null): bool
+function send_sms(PDO $pdo, ?int $userId, ?string $phone, string $message, string $event = 'legacy', ?string $eventKey = null, ?callable $beforeAttempt = null): bool
 {
     $lock = null;
     $permissionLock = null;
@@ -118,6 +118,12 @@ function send_sms(PDO $pdo, ?int $userId, ?string $phone, string $message, strin
             THEN JSON_UNQUOTE(JSON_EXTRACT(response,"$.event_key")) ELSE NULL END=:key LIMIT 1');
         $query->execute(['key' => $key]);
         if ($query->fetch()) return false;
+        // Reminder eligibility/recipient is rechecked under the existing permission and event locks.
+        if ($beforeAttempt !== null) {
+            $currentPhone = $beforeAttempt();
+            if ($currentPhone === false) return false;
+            $phone = $currentPhone;
+        }
         $config = smsConfig();
         $metadata = ['sms_version' => 1, 'event_key' => $key, 'event' => $event,
             'provider' => $config['provider'], 'request_attempted' => null,

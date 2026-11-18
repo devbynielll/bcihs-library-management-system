@@ -1,7 +1,7 @@
 // Shared report presentation keeps on-screen, CSV and print values consistent.
 window.reporting = {
   labels: {all:'All statuses',pending:'Pending',awaiting_pickup:'Approved / Awaiting Pickup',approved:'Checked Out (legacy)',checked_out:'Checked Out',
-    returned:'Returned',rejected:'Rejected',waiting:'Waiting',ready:'Ready for Pickup',fulfilled:'Fulfilled / Checked Out',cancelled:'Cancelled',
+    returned:'Returned',rejected:'Rejected',waiting:'Waiting list — no copy allocated',ready:'Ready for Pickup',fulfilled:'Fulfilled / Checked Out',cancelled:'Cancelled',
     accepted:'Accepted'},
   label(value) { return this.labels[value] || value || '—'; },
   csvCell(value) {

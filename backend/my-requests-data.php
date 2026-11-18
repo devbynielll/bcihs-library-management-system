@@ -15,7 +15,7 @@ try {
                 COALESCE(br.checked_out_at, CASE WHEN br.status IN ("approved","returned") THEN br.approved_at END) AS borrowed_at,
                 u.id AS user_id, u.full_name, u.email, u.student_id, u.id_number, u.year_section, u.department, u.phone, u.role
          FROM borrow_requests br JOIN users u ON u.id = br.user_id
-         WHERE br.user_id = :user ORDER BY br.requested_at DESC, br.id DESC'
+         WHERE br.user_id = :user AND br.status<>"rejected" ORDER BY br.requested_at DESC, br.id DESC'
     );
     $stmt->execute(['user' => (int) $_SESSION['user_id']]);
     echo json_encode(['requests' => $stmt->fetchAll()]);

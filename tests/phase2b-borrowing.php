@@ -167,15 +167,15 @@ try {
 
     $rejectedBook=newBook();$rejected=requestLoan($rejectedBook,$a);action($rejected,'approve',$staff);action($rejected,'reject',$staff);stock($rejectedBook,0,0,$staff);action($rejected,'checkout',$staff,409);
     $manualBook=newBook(2);[, $list]=http('borrow-requests-data','GET',null,$staff);$nonce=$list['manualCheckoutToken'];
-    $manual=['borrower_name'=>$prefix.' Manual','book_id'=>$manualBook,'confirm_checkout'=>true,'checkout_token'=>$nonce];
+    $manual=['user_id'=>$a['id'],'borrower_name'=>$prefix.' Manual','book_id'=>$manualBook,'confirm_checkout'=>true,'checkout_token'=>$nonce];
     [$status]=http('borrow-request-add','POST',array_merge($manual,['confirm_checkout'=>false]),$staff);verify($status===422,'manual form requires explicit physical handover');
     foreach(['1900-01-01','2026-02-30','2099-01-01',"2026-10-27\0",[]] as $bad){[$status]=http('borrow-request-add','POST',array_merge($manual,['due_date'=>$bad]),$staff);verify($status===422,'manual due override validated on the server');}
     [$status,$data]=http('borrow-request-add','POST',$manual,$staff);verify($status===200,'manual handover records an immediate checkout');$manualId=(int)$data['id'];stock($manualBook,1,0,$staff);
     verify(loan($manualId)['status']==='checked_out' && loan($manualId)['checked_out_at']!==null,'manual row is explicitly checked out, not merely approved');
     [$status,$repeat]=http('borrow-request-add','POST',$manual,$staff);verify($status===200 && ($repeat['replayed']??false) && (int)$repeat['id']===$manualId,'retrying the same manual form returns the original loan');stock($manualBook,1,0,$staff);
-    [$status]=http('borrow-request-add','POST',array_merge($manual,['borrower_name'=>'Different intent']),$staff);verify($status===409,'a consumed manual token cannot record a different handover');
+    [$status]=http('borrow-request-add','POST',array_merge($manual,['user_id'=>$b['id']]),$staff);verify($status===409,'a consumed manual token cannot record a different handover');
     [, $list]=http('borrow-requests-data','GET',null,$staff);$override=(new DateTimeImmutable('+2 days'))->format('Y-m-d');
-    [$status,$data]=http('borrow-request-add','POST',array_merge($manual,['checkout_token'=>$list['manualCheckoutToken'],'borrower_name'=>$prefix.' Manual override','due_date'=>$override]),$staff);verify($status===200,'existing staff due-date override remains supported');$manual2=(int)$data['id'];verify(loan($manual2)['due_date']===$override.' 23:59:59','manual override is a validated Philippine calendar date');stock($manualBook,2,0,$staff);
+    [$status,$data]=http('borrow-request-add','POST',array_merge($manual,['checkout_token'=>$list['manualCheckoutToken'],'user_id'=>$b['id'],'borrower_name'=>$prefix.' Manual override','due_date'=>$override]),$staff);verify($status===200,'existing staff due-date override remains supported');$manual2=(int)$data['id'];verify(loan($manual2)['due_date']===$override.' 23:59:59','manual override is a validated Philippine calendar date');stock($manualBook,2,0,$staff);
     action($manualId,'return',$staff);action($manual2,'return',$staff);stock($manualBook,0,0,$staff);
 
     $legacyBook=newBook();$pdo->prepare('UPDATE books SET borrowed_copies=1 WHERE id=:id')->execute(['id'=>$legacyBook]);

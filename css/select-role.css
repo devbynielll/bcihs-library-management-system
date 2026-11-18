@@ -134,3 +134,20 @@
   }
 
 .extracted-style-1 { width:100%;height:100%;object-fit:cover; }
+
+/* Keep account details and name fields aligned across registration roles. */
+.auth-page .registration-form .registration-wide,
+.auth-page .registration-form .registration-names { grid-column: 1 / -1; }
+.auth-page .registration-form .registration-names {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.auth-page .registration-form .registration-names .field { min-width: 0; margin-bottom: 0; }
+.auth-page .registration-form .field { min-width: 0; margin-bottom: 20px; }
+.auth-page .registration-form .req { color: #c62828; margin-left: 3px; }
+.auth-page .registration-form .phone-hint { line-height: 1.5; }
+@media (max-width: 639px) {
+  .auth-page .registration-form .registration-names { grid-template-columns: 1fr; gap: 20px; }
+}

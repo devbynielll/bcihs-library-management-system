@@ -36,7 +36,7 @@ function harness(file, search, allowProfileHtml=false) {
   return {context,get,calls,draws,events};
 }
 const request={id:8,status:'awaiting_pickup',full_name:'Student <img onerror=x>',student_id:'STU8',year_section:'Grade 10 — Peace',title:'Book " café & <script>',author:'Author',call_number:'500 A1',requested_at:'2026-10-27 08:00:00',approved_at:'2026-10-27 09:00:00',account_status:'accepted'};
-const data={request,eligible:true,csrfToken:'test-csrf'};
+const data={request,eligible:true,activeLoanCapacity:{used:2,remaining:1,limit:3},borrowingCapacity:{used:3,remaining:0,limit:3},csrfToken:'test-csrf'};
 function response(body,status=200){return {ok:status>=200&&status<300,status,json:async()=>body};}
 async function main(){
   const ui=harness('js/pickup-verification.js','?token='+token);
@@ -64,6 +64,14 @@ async function main(){
   verify(posted.headers['X-CSRF-Token']==='test-csrf','checkout transmits session CSRF');
   release(response({success:true}));await saving;
   verify(ui.get('checkoutButton').hidden && ui.get('pickupMessage').textContent.includes('Checkout confirmed'),'success reloads used status and hides checkout');
+  api.renderPickup({...data,eligible:false,activeLoanCapacity:{used:3,remaining:0,limit:3}});
+  verify(!ui.get('checkoutButton').hidden && ui.get('checkoutButton').disabled,'limit keeps checkout visible but disabled');
+  verify(!ui.get('pickupLimitWarning').hidden && ui.get('pickupLimitWarning').textContent.includes('Borrowing Limit Reached'),'mobile warning explains full capacity');
+  const beforeLimit=ui.calls.length;await ui.get('checkoutButton').listeners.click();verify(ui.calls.length===beforeLimit,'disabled QR checkout never posts');
+  ui.context.respond=async()=>response(data);await api.loadPickup();verify(!ui.get('checkoutButton').disabled && ui.get('pickupLimitWarning').hidden,'recheck after return restores checkout');
+  ui.context.respond=async(endpoint,options)=>options.method==='POST'?response({error:'This borrower already has three books checked out. Return a book before another checkout.'},409):response({...data,eligible:false,activeLoanCapacity:{used:3,remaining:0,limit:3}});
+  await ui.get('checkoutButton').listeners.click();
+  verify(ui.get('checkoutButton').disabled && ui.get('pickupMessage').textContent.includes('Return a book'),'stale capacity conflict refreshes and explains blocked checkout');
   ui.context.respond=async()=>response({error:'Only library staff'},403);await api.loadPickup();
   verify(ui.get('pickupDetails').hidden && ui.get('pickupFields').children.length===0 && ui.context.window.location.href==='admin-login.html?pickup='+token,'borrower session hides details and routes to staff-only login');
   ui.context.respond=async()=>response({error:'not_logged_in'},401);await api.loadPickup();

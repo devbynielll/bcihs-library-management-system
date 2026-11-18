@@ -52,7 +52,7 @@ if (function_exists('pcntl_fork')) {
     checkCredits(file_get_contents($dir.'/calls')==='1');
 }
 $endpoint=file_get_contents(__DIR__.'/../backend/semaphore-credits.php');
-checkCredits(str_contains($endpoint,"!== 'admin'") && str_contains($endpoint,'requireBookCsrf()'));
+checkCredits(str_contains($endpoint,'requireBookAccess($pdo, true);') && str_contains($endpoint,'requireBookCsrf()'));
 checkCredits(!str_contains($endpoint,'smsDispatch') && !str_contains($endpoint,'INSERT') && !str_contains($endpoint,'UPDATE'));
 $source=file_get_contents(__DIR__.'/../includes/semaphore-credits.php');
 checkCredits(str_contains($source,'/api/v4/account?') && !str_contains($source,'/api/v4/messages'));

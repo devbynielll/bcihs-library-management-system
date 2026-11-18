@@ -7,7 +7,7 @@ require_once __DIR__ . '/../includes/db_connect.php';
 require_once __DIR__ . '/../includes/book-management.php';
 require_once __DIR__ . '/../includes/semaphore-credits.php';
 try {
-    if (requireBookAccess($pdo, true) !== 'admin') bookError(403, 'Administrator access required.');
+    requireBookAccess($pdo, true);
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') bookError(405, 'method_not_allowed');
     requireBookCsrf();
     session_write_close();

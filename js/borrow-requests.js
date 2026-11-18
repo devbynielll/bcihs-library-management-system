@@ -23,7 +23,9 @@
   });
 
   let allRequests = [];
+  let requestsGeneration = 0;
   let allBooks = [];
+  let allBorrowers = [];
   let csrfToken = '';
   let checkoutToken = '';
   let savingManual = false;
@@ -88,19 +90,23 @@
   }
 
   function loadRequests() {
+    const generation = ++requestsGeneration;
+    const audit = document.getElementById('statusFilter').value === 'rejected';
     csrfToken = '';
     checkoutToken = '';
     document.getElementById('loadingMsg').style.display = 'block';
     document.getElementById('loadingMsg').textContent = 'Loading requests…';
     document.getElementById('requestsTable').style.display = 'none';
-    return fetch('backend/borrow-requests-data.php', { credentials: 'same-origin' })
+    return fetch('backend/borrow-requests-data.php' + (audit ? '?view=rejected' : ''), { credentials: 'same-origin' })
       .then(res => {
         if (res.status === 401) throw new Error('not_logged_in');
         if (!res.ok) throw new Error('failed');
         return res.json();
       })
       .then(data => {
+        if (generation !== requestsGeneration) return;
         allRequests = data.requests || [];
+        allBorrowers = data.borrowers || [];
         csrfToken = data.csrfToken || '';
         checkoutToken = data.manualCheckoutToken || '';
         document.getElementById('loadingMsg').style.display = 'none';
@@ -109,6 +115,7 @@
         applyFilters();
       })
       .catch(err => {
+        if (generation !== requestsGeneration) return;
         if (err.message === 'not_logged_in') { window.location.href = 'admin-login.html'; return; }
         document.getElementById('loadingMsg').textContent = 'Something went wrong loading requests.';
       });
@@ -152,7 +159,7 @@
     document.getElementById('bookOptions').replaceChildren();
     studentInput.value = '';
     bookInput.value = '';
-    studentInput.placeholder = 'Type the borrower name';
+    studentInput.replaceChildren(new Option('Select an approved borrower', ''));
     bookInput.placeholder = 'Loading books…';
     studentInput.focus();
 
@@ -169,6 +176,8 @@
         const bookData = await response.json();
         allBooks = bookData.books || [];
         populateBorrowFormOptions();
+        studentInput.replaceChildren(new Option('Select an approved borrower', ''));
+        allBorrowers.forEach(user => studentInput.add(new Option(user.full_name + ' — ' + (user.identifier || ('Account #' + user.id)), String(user.id))));
         if (!allBooks.some(book => borrowing.requestable(book) > 0)) {
           showToast('No books are currently available to borrow.');
           return;
@@ -242,7 +251,8 @@
     event.preventDefault();
     const studentInput = document.getElementById('studentInput');
     const bookInput = document.getElementById('bookInput');
-    const borrowerName = studentInput.value.trim();
+    const borrower = allBorrowers.find(user => String(user.id) === studentInput.value);
+    const borrowerName = borrower?.full_name || '';
     const availableBooks = allBooks.filter(book => borrowing.requestable(book) > 0);
     const book = matchTypedOption(
       bookInput.value,
@@ -252,7 +262,7 @@
     );
 
     if (!borrowerName) {
-      showToast('Type the borrower name.');
+      showToast('Select an approved borrower account.');
       studentInput.focus();
       return;
     }
@@ -273,7 +283,7 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
       credentials: 'same-origin',
-      body: JSON.stringify({ borrower_name: borrowerName, book_id: Number(book.id), due_preview_token: due.due_preview_token, confirm_checkout: true, checkout_token: checkoutToken })
+      body: JSON.stringify({ user_id: Number(borrower.id), book_id: Number(book.id), due_preview_token: due.due_preview_token, confirm_checkout: true, checkout_token: checkoutToken })
     })
       .then(async res => {
         const data = await res.json();
@@ -300,6 +310,17 @@
       return: 'Confirm that the physical book has been returned to the library?'
     };
     if (!prompts[action]) return;
+    if (action === 'checkout' && request.user_id) {
+      try {
+        const response = await fetch('backend/borrower-loan-capacity.php?user_id=' + encodeURIComponent(request.user_id), {credentials:'same-origin',cache:'no-store'});
+        const data = await response.json();
+        if (!response.ok || !data.activeLoanCapacity || !Number.isInteger(data.activeLoanCapacity.used)) throw new Error('Could not check borrowing capacity. Recheck before proceeding.');
+        if (data.activeLoanCapacity.used >= 3) {
+          if (action === 'checkout') { showToast('Borrowing Limit Reached — ' + data.activeLoanCapacity.used + '/3 books currently borrowed. Return a book before checkout.'); return; }
+
+        }
+      } catch (error) { showToast(error.message); return; }
+    }
     let due = null;
     if (action === 'checkout') {
       if (!window.checkoutDue) { showToast('Reload to load the due-date confirmation.'); return; }
@@ -323,6 +344,6 @@
   };
 
   document.getElementById('searchInput').addEventListener('input', applyFilters);
-  document.getElementById('statusFilter').addEventListener('change', applyFilters);
+  document.getElementById('statusFilter').addEventListener('change', loadRequests);
 
 loadRequests();

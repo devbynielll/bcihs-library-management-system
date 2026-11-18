@@ -9,7 +9,7 @@
     el('borrowingPolicyAudit').replaceChildren();
     for (const row of data.audit) {
       const item = document.createElement('li');
-      item.textContent = `${row.changed_at} PHT · Administrator #${row.admin_id}: ${row.previous_days} to ${row.new_days} days — ${row.reason}`;
+      item.textContent = `${row.changed_at} PHT · ${row.actor_role === 'librarian' ? 'Librarian' : 'Administrator'} #${row.admin_id}: ${row.previous_days} to ${row.new_days} days — ${row.reason}`;
       el('borrowingPolicyAudit').append(item);
     }
   }

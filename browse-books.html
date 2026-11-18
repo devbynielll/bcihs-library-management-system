@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Browse Books | BCIHS Library</title>
-<link rel="stylesheet" href="css/browse-books.css?v=20261026-qr-login-required">
+<link rel="stylesheet" href="css/browse-books.css?v=status-colors-20261118">
 <link rel="stylesheet" href="css/borrowing.css?v=20261027-phase2b-review">
 <link rel="stylesheet" href="css/ui-refinements.css?v=20261027-phase3a">
 <link rel="stylesheet" href="css/reservation-scheduling.css?v=20261027-phase4">
@@ -31,6 +31,10 @@
 </div>
 
 <main>
+  <section class="request-capacity" id="requestCapacity" role="status" aria-live="polite" hidden>
+    <strong id="requestCapacityCount"></strong>
+    <p id="requestCapacityHint"></p>
+  </section>
   <div class="controls">
     <input type="text" id="searchInput" aria-label="Search books" placeholder="Search title, author, category, or call number…">
   </div>
@@ -68,7 +72,7 @@
 <script src="js/library-ui.js?v=phase8"></script>
 <script src="js/borrowing-status.js?v=20261027-phase2b"></script>
 <script src="js/reservation-scheduling.js?v=20261027-phase4"></script>
-<script src="js/browse-books.js?v=20261027-phase4"></script>
+<script src="js/browse-books.js?v=pickup-alignment-20261118"></script>
 
 </body>
 </html>

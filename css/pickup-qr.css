@@ -20,3 +20,11 @@
 .pickup-qr-card a{color:#65191c;display:block;overflow-wrap:anywhere}
 .pickup-qr-card [role=status]{line-height:1.6}
 @media(max-width:600px){.pickup-verification main{margin:12px;padding:18px}.pickup-verification dl{grid-template-columns:1fr;gap:4px}.pickup-verification dd{margin-bottom:10px}}
+
+.pickup-verification .pickup-limit-warning { padding: 14px 16px; margin: 16px 0; border: 1px solid #d9af77; border-radius: 8px; background: #fff6e8; color: #704500; overflow-wrap: anywhere; }
+.pickup-verification button:disabled { opacity: .6; cursor: not-allowed; }
+@media (max-width: 520px) {
+  .pickup-verification dl { grid-template-columns: 1fr; gap: 4px; }
+  .pickup-verification dd { margin-bottom: 12px; }
+  .pickup-verification #checkoutButton, .pickup-verification #refreshPickup { width: 100%; min-height: 44px; }
+}

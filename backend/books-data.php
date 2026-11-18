@@ -14,7 +14,7 @@ try {
                 b.total_copies, b.borrowed_copies, b.created_at, (' . BOOK_HOLDS_SQL . ') AS held_copies
          FROM books b ORDER BY b.created_at DESC, b.id DESC'
     );
-    echo json_encode(['canBorrow' => in_array($role, ['student','teacher','librarian','staff','employee'], true), 'books' => addBookAvailability($stmt->fetchAll()), 'csrfToken' => bookCsrfToken(), 'serverDate' => date('Y-m-d')]);
+    echo json_encode(['canBorrow' => in_array($role, ['student','teacher','librarian','staff','employee'], true), 'borrowingCapacity' => isset($_SESSION['user_id']) ? borrowingCapacity($pdo, (int)$_SESSION['user_id']) : null, 'books' => addBookAvailability($stmt->fetchAll()), 'csrfToken' => bookCsrfToken(), 'serverDate' => date('Y-m-d')]);
 } catch (Throwable $exception) {
     borrowingFailure($pdo, $exception);
 }
