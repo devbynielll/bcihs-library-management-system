@@ -10,7 +10,7 @@ A PHP and MySQL library system for Batangas City Integrated High School, coverin
 - Borrowing requests, pickup holds, account-linked manual checkout, returns and saved/custom due dates.
 - Request-specific pickup QR codes: staff authentication and explicit handover confirmation are mandatory; scanning never checks out a book.
 - Reservation waiting lists, pickup scheduling/capacity, Ready allocations, checkout and return.
-- Attendance and walk-in recording; optional policy-controlled departure tracking.
+- Time In attendance and walk-in recording. Time Out is disabled; the retired endpoint returns HTTP 410 after staff access validation. Historical departure timestamps are preserved.
 - Dashboard, transaction history, reports, print and spreadsheet exports.
 - Shared simulation/UniSMS/Semaphore notification engine, SMS permission controls, duplicate prevention and logs. Semaphore credit monitoring is a separate read-only provider operation, not a simulated SMS.
 - Approved librarians share library-management controls with administrators, including notification permission and the default borrowing period. Private credentials and live transport authorization remain separate.
@@ -32,7 +32,7 @@ HTML, CSS, vanilla JavaScript, PHP 8.3 (64-bit), PDO MySQL, InnoDB and Composer-
 
 1. Obtain the latest reviewed source and place it in your configured local document root as `bcihs-library`. Do not overwrite an existing project or database.
 2. Start Apache and MySQL. Verify web PHP and terminal PHP are compatible.
-3. Prepare a **new, empty** local database and import the appropriate schema. Import the consolidated `sql/schema.sql` as described in [LOCAL_SETUP.md](LOCAL_SETUP.md#3-create-a-new-empty-database). It already includes the current phone-uniqueness and staff-audit fields. Do not run duplicate migrations on a fresh installation.
+3. Prepare a **new, empty** local database and import the appropriate schema. Import the consolidated `sql/schema.sql` as described in [LOCAL_SETUP.md](LOCAL_SETUP.md#3-create-a-new-empty-database). **Never import `sql/schema.sql` over an existing populated `bcihs_library` database.** It already includes the current phone-uniqueness and staff-audit fields. Do not run duplicate migrations on a fresh installation.
 4. Copy `includes/db-local.example.php` to the ignored `includes/db-local.php`, then enter the actual local connection settings privately. Keep SMS absent/default simulation or explicitly simulation-only with live sending disabled.
 5. In the project directory run `composer install`, followed by `composer check-platform-reqs`.
 6. Run `php scripts/create-local-admin.php` in an interactive terminal. You choose the credentials; no accounts/passwords are supplied by a fresh schema.
